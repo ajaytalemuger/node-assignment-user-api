@@ -2,6 +2,7 @@ const express = require("express");
 const router = new express.Router();
 const User = require('../models/user');
 const auth = require('../middlewares/auth');
+const { checkIfUserExist, validateUserId, checkIfEmailAlreadyExists, checkPostbody } = require("../middlewares/validate");
 
 // Array of fields allowed in search query. Used in find by seach query endpoint 
 const allowedSearchFields = ['name', 'email', '_id'];
@@ -13,13 +14,10 @@ router.get("/", async (req, res) => {
 });
 
 // Handler to retrieve details of a single user for the userid given in url parameter
-router.get("/:userId", async (req, res) => {
+router.get("/:userId", validateUserId, checkIfUserExist, async (req, res) => {
     try {
-        const { userId } = req.params
-        const user = await getUser(userId);
-        res.send(user);
+        res.send(req.requestedUser);
     } catch (e) {
-        console.log(e.message);
         res.status(500).send({ error: "Error while retrieving user details" });
     }
 });
@@ -31,7 +29,7 @@ router.post("/search/", async (req, res) => {
         if (validateSearchQuery(searchQuery)) {
             sendUserDetailsForSearchQuery(searchQuery, res)
         } else {
-            res.status(400).send({ message: "Invalid search query" });
+            res.status(400).send({ error: "Invalid search query" });
         }
     } catch (e) {
         console.log(e)
@@ -44,7 +42,7 @@ async function sendUserDetailsForSearchQuery(searchQuery, res) {
     if (user) {
         res.send(user);
     } else {
-        res.send({ message: "No user found for the given search query" });
+        res.send({ error: "No user found for the given search query" });
     }
 }
 
@@ -58,37 +56,36 @@ async function getUser(userId) {
 }
 
 // Handler to update user details
-router.patch("/:userId", auth, async (req, res) => {
+router.patch("/:userId", auth, validateUserId, checkIfUserExist, async (req, res) => {
     try {
-        const { userId } = req.params;
         const inputUserDetails = req.body;
-        const user = await getUser(userId);
+        const user = req.requestedUser;
         Object.keys(inputUserDetails).forEach(updateField => user[updateField] = inputUserDetails[updateField]);
         await user.save();
-        res.send({ message: "User details successfully updated" });
+        res.send({ message: "User details successfully updated", user });
     } catch (e) {
         res.status(500).send({ error: "Error occured while updating user details" });
     }
 });
 
 // Handler to create new user
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, checkPostbody, checkIfEmailAlreadyExists, async (req, res) => {
     try {
         const userDetails = req.body;
-        await new User(userDetails).save();
-        res.send({ message: "User successfully created" });
+        const user = await new User(userDetails);
+        user.save();
+        res.send({ message: "User successfully created", user });
     } catch (e) {
         res.status(500).send({ error: "Error occured while creating user" });
     }
 });
 
 // Handler to delete a user
-router.delete("/:userId", auth, async (req, res) => {
+router.delete("/:userId", auth, validateUserId, checkIfUserExist, async (req, res) => {
     try {
-        const { userId } = req.params;
-        const user = await getUser(userId);
+        const user = req.requestedUser;
         await user.remove();
-        res.send({ message: "User successfully deleted" });
+        res.send({ message: "User successfully deleted", user });
     } catch (e) {
         res.status(500).send({ error: "Error occured while deleting user" });
     }
