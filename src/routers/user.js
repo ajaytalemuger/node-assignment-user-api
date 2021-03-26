@@ -1,6 +1,7 @@
 const express = require("express");
 const router = new express.Router();
 const User = require('../models/user');
+const auth = require('../middlewares/auth');
 
 // Array of fields allowed in search query. Used in find by seach query endpoint 
 const allowedSearchFields = ['name', 'email', '_id'];
@@ -57,7 +58,7 @@ async function getUser(userId) {
 }
 
 // Handler to update user details
-router.patch("/:userId", async (req, res) => {
+router.patch("/:userId", auth, async (req, res) => {
     try {
         const { userId } = req.params;
         const inputUserDetails = req.body;
@@ -71,7 +72,7 @@ router.patch("/:userId", async (req, res) => {
 });
 
 // Handler to create new user
-router.post("/", async (req, res) => {
+router.post("/", auth, async (req, res) => {
     try {
         const userDetails = req.body;
         await new User(userDetails).save();
@@ -82,7 +83,7 @@ router.post("/", async (req, res) => {
 });
 
 // Handler to delete a user
-router.delete("/:userId", async (req, res) => {
+router.delete("/:userId", auth, async (req, res) => {
     try {
         const { userId } = req.params;
         const user = await getUser(userId);
