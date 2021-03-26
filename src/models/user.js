@@ -26,6 +26,8 @@ const userSchema = new mongoose.Schema({
             required: true
         }
     }],
+}, {
+    timestamps: true
 });
 
 userSchema.methods.toJSON = function () {
@@ -34,6 +36,8 @@ userSchema.methods.toJSON = function () {
     delete userObject.password;
     delete userObject.__v;
     delete userObject.tokens;
+    delete userObject.createdAt;
+    delete userObject.updatedAt;
     return userObject;
 };
 
