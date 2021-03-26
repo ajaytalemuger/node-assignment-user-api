@@ -2,13 +2,16 @@ const express = require("express");
 const router = new express.Router();
 const User = require('../models/user');
 
+// Array of fields allowed in search query. Used in find by seach query endpoint 
 const allowedSearchFields = ['name', 'email', '_id'];
 
+// handler to retrieve details of all the users
 router.get("/", async (req, res) => {
     const users = await User.find();
     res.send(users);
 });
 
+// Handler to retrieve details of a single user for the userid given in url parameter
 router.get("/:userId", async (req, res) => {
     try {
         const { userId } = req.params
@@ -20,6 +23,7 @@ router.get("/:userId", async (req, res) => {
     }
 });
 
+// Handler to retrieve details of a single user for the search query given in post body
 router.post("/search/", async (req, res) => {
     try {
         const searchQuery = req.body;
@@ -52,7 +56,8 @@ async function getUser(userId) {
     return User.findById(userId);
 }
 
-router.put("/:userId", async (req, res) => {
+// Handler to update user details
+router.patch("/:userId", async (req, res) => {
     try {
         const { userId } = req.params;
         const inputUserDetails = req.body;
@@ -65,6 +70,7 @@ router.put("/:userId", async (req, res) => {
     }
 });
 
+// Handler to create new user
 router.post("/", async (req, res) => {
     try {
         const userDetails = req.body;
@@ -75,6 +81,7 @@ router.post("/", async (req, res) => {
     }
 });
 
+// Handler to delete a user
 router.delete("/:userId", async (req, res) => {
     try {
         const { userId } = req.params;
