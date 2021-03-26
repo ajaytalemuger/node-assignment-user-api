@@ -4,7 +4,7 @@ const User = require('../models/user');
 const auth = require('../middlewares/auth');
 const { checkIfUserExist, validateUserId, checkIfEmailAlreadyExists, checkPostbody } = require("../middlewares/validate");
 
-// Array of fields allowed in search query. Used in find by seach query endpoint 
+// Array of fields allowed in search query. Used in find by search query endpoint 
 const allowedSearchFields = ['name', 'email', '_id'];
 
 // handler to retrieve details of all the users
